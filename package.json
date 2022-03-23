@@ -12,5 +12,13 @@
   "dependencies": {
     "express": "^4.17.3"
   },
-  "devDependencies": {}
+  "devDependencies": {},
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/UP2010416/BetterWordle.git"
+  },
+  "bugs": {
+    "url": "https://github.com/UP2010416/BetterWordle/issues"
+  },
+  "homepage": "https://github.com/UP2010416/BetterWordle#readme"
 }
