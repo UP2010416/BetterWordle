@@ -1,0 +1,96 @@
+*{
+    margin: 0;
+    padding: 0;
+    font-family: "Bahnschrift SemiBold", "Lucida Sans", "Lucida Sans Regular", "Lucida Grande",
+    "Lucida Sans Unicode", Geneva, Verdana, sans-serif;
+}
+
+html, body {
+    height: 100%;
+}
+
+#container {
+    display: flex;
+    background-color: #1a1a1a;
+    height: 100%;
+    align-items: center;
+    flex-direction: column;
+}
+header {
+    width: 100%;
+    background-color: rgb(83, 141, 78);
+}
+
+.title {
+    color: whitesmoke;
+    font-size: 50px;
+    text-align: center;
+    padding-top: 30px;
+    padding-bottom: 30px;
+    text-decoration: underline;
+    letter-spacing: 5px;
+}
+
+#board-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-grow: 1;
+    overflow: hidden;
+}
+
+#board {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    grid-gap: 5px;
+    padding: 10px;
+    box-sizing: border-box;
+}
+
+.square{
+    display: flex;
+    border: 2px solid rgb(58, 58, 60);
+    justify-content: center;
+    align-items: center;
+    min-width: 60px;
+    min-height: 60px;
+    font-size: 40px;
+    font-weight: bold;
+    color: whitesmoke;
+    text-transform: uppercase;
+}
+
+#keyboard-container{
+    width: 500px;
+    padding-bottom: 50px;
+}
+
+.keyboard-row{
+    display: flex;
+    justify-content: center;
+    width: 100%;
+    margin: 0 auto 8px;
+    touch-action: manipulation;
+}
+
+.keyboard-row button{
+    font-weight: bold;
+    background-color: #8c8c8c;
+    border: #8c8c8c;
+    color: whitesmoke;
+    height: 58px;
+    text-transform: uppercase;
+    cursor: pointer;
+    flex-grow: 1;
+    margin-right: 6px;
+    border-radius: 4px;
+    user-select: none;
+}
+
+.keyboard-row button.wide{
+    flex-grow: 1.5;
+}
+
+.spacer-half{
+    flex-grow: 0.5;
+}

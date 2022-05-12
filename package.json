@@ -5,12 +5,18 @@
   "main": "svr.js",
   "type": "module",
   "scripts": {
-    "start": "node svr.js"
+    "start": "node svr.js",
+    "setupdb": "createdb word && psql word < ./words.sql",
+    "setup": "npm run setupdb"
   },
   "author": "Michael Kelly",
   "license": "ISC",
   "dependencies": {
-    "express": "^4.17.3"
+    "express": "^4.17.3",
+    "pg": "^8.7.3",
+    "psql": "^0.0.1",
+    "sqlite": "^3.0.6",
+    "sqlite3": "^5.0.8"
   },
   "repository": {
     "type": "git",
