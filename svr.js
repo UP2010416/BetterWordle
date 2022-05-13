@@ -1,21 +1,39 @@
 import express from 'express';
-import * as words from './database.js';
+import * as db from './database.js';
 
 const app = express();
 app.use(express.static('client'));
 
+let counter = 1
+let wordUpdated;
 
-/* async function checkWord(req, res){
-    let word = req.body
-    console.log(word)
-    const response = await fetch ("https://dictionary-dot-sse-2020.nw.r.appspot.com/"+req.body)
-    if(response.ok){
-        res.json(response)
-    } else {
-        res.status(404).send('Word is not valid')
-    }
+setInterval(updateCounter, 86400000)
+
+function updateCounter(){
+    wordUpdated = counter
+    counter = counter + 1
 }
 
-app.post('/validword', express.text(), checkWord) */
+async function getTodaysWord(req, res) {
+    res.json(await db.getWord(counter));
+}
 
+async function checkWord(req, res){
+    res.json(await db.getEvaluation(req.body.msg, counter))
+}
+
+async function checkWordUpdate(req, res){
+    if 
+}
+
+function asyncWrap(f) {
+    return (req, res, next) => {
+        Promise.resolve(f(req, res, next))
+        .catch((e) => next(e || new Error()));
+    };
+}
+
+app.get('/checkUpdate', express.json(), asyncWrap(checkWordUpdate()));
+app.post('/checkWord', express.json(), asyncWrap(checkWord));
+app.get('/todaysWord', asyncWrap(getTodaysWord));
 app.listen(8080);

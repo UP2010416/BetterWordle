@@ -1,11 +1,14 @@
 "use strict";
+
 let guessedWords = [[]]
 let evaluations = Array(30).fill("absent")
 let keyEvaluations = Array(28).fill("undefined")
 let space = 1;
 let wordsCounter = 0;
 let gameState;
-let todaysWord = 'slugs';
+let tileEvaluation;
+let todaysWord;
+let dailyWordCount;
 
 function pageLoaded() {
     createLocalStorage()
@@ -14,9 +17,109 @@ function pageLoaded() {
     addEvaluationToKeys()
     colourKeys()
     gameStateCheck()
+    checkForWordUpdate()
+
+    // Test to see if words are updating (set time on svr.js to a smaller interval)
+
+    /* setInterval(async function(){
+      let output;
+      const word = 'grids'
+      const payload = { msg: word}
+      console.log('Payload', payload)
+      const response = await fetch('checkWord', {
+        method: 'POST',
+        headers: {'Content-Type' : 'application/json'},
+        body: JSON.stringify(payload)
+      })
+      if (response.ok){
+        output = await response.json()
+      } else {
+        output = {msg : 'failed to check word'}
+      }
+      console.log(output)
+    }, 1000) */
   }
 
 window.addEventListener('load', pageLoaded);
+
+async function checkForWordUpdate(){
+  const payload = { msg : dailyWordCount }
+  const response = await fetch('checkUpdate', {
+    method: 'POST',
+    headers: {'Content-Type' : 'application/json'},
+    body: JSON.stringify(payload)
+  })
+  if(response.ok){
+
+  }
+}
+
+async function checkWord(currentWord, currentWords, firstLetter){
+  let output;
+  const payload = { msg: currentWord }
+  console.log('Payload', payload)
+  const response = await fetch('checkWord', {
+    method: 'POST',
+    headers: {'Content-Type' : 'application/json'},
+    body: JSON.stringify(payload)
+  })
+  if (response.ok){
+    output = await response.json()
+    tileEvaluation = output
+    const interval = 450;
+    currentWords.forEach((item, i) => {
+      setTimeout(() => {
+        const key = document.querySelector(`[data-key='${item}']`)
+        const letterID = firstLetter + i;
+        const tile = document.querySelector(`#square${letterID}`)
+        tile.setAttribute("evaluation",tileEvaluation[i][1])
+        key.setAttribute("evaluation",tileEvaluation[i][1])
+        tile.classList.add("animate__flipInX")
+        tile.style = `background-color:${tileEvaluation[i][0]};border-color:${tileEvaluation[i][0]}`
+        key.style = `background-color:${tileEvaluation[i][0]};border:${tileEvaluation[i][0]}`
+        updateEvaluationsStorage()
+        updateKeyEvaluationsStorage()
+      }, interval * i)
+    })
+
+    if(tileEvaluation[0][1] && tileEvaluation[1][1] && tileEvaluation[2][1]
+      && tileEvaluation[3][1] && tileEvaluation[4][1] === "correct"){
+      setTimeout(window.alert("Congratulations!"), 2300)
+      gameState = "OVER"
+      updateStoredGameState()
+      gameStateCheck()
+    }
+
+    if(guessedWords.length===6){
+      getTodaysWord()
+      window.alert(`Game Over, the word is ${todaysWord}`)
+      gameState = "OVER"
+      updateStoredGameState()
+      gameStateCheck()
+    }
+
+    guessedWords.push([])
+    wordsCounter++
+    updateGuessedWordsStorage()
+    updateWordsCounterStorage()
+    updateStoredSpaceStorage()
+  } else {
+    output = {msg : 'failed to check word'}
+  }
+}
+
+async function getTodaysWord(){
+  const response = await fetch('todaysWord')
+  let obj;
+  let word
+  if (response.ok){
+    obj = await response.json()
+    word = obj["word"]
+    todaysWord = word;
+  } else {
+    obj = [{msg : "failed to load today's word"}]
+  }
+}
 
 function keyboard(){
   const keys = document.querySelectorAll('.keyboard-row button')
@@ -75,6 +178,12 @@ function createLocalStorage(){
   } else {
     gameState = storedGameState
   }
+  const storedDailyWordCount = window.localStorage.getItem('dailyWordCount')
+  if(!storedDailyWordCount){
+    window.localStorage.setItem('dailyWordCount', dailyWordCount)
+  } else {
+    dailyWordCount = storedDailyWordCount
+  }
 }
 
 function updateGuessedWordsStorage(){
@@ -87,7 +196,6 @@ function updateEvaluationsStorage(){
   for(let i=0;i<squares.length;i++){
     evaluationUpdate.push(squares[i].getAttribute("evaluation"))
   }
-  console.log(evaluationUpdate)
   window.localStorage.setItem('evaluations', JSON.stringify(evaluationUpdate))
 }
 
@@ -142,74 +250,12 @@ async function submitWord(){
     if(!res.ok){
       throw Error()
     }
-    const interval = 450;
-    currentWords.forEach((item, i) => {
-      setTimeout(() => {
-        const key = document.querySelector(`[data-key='${item}']`)
-        const tileEvaluation = getTileEvaluation(item, i)
-        const letterID = firstLetter + i;
-        const tile = document.querySelector(`#square${letterID}`)
-        tile.setAttribute("evaluation",tileEvaluation[1])
-        key.setAttribute("evaluation",tileEvaluation[1])
-        tile.classList.add("animate__flipInX")
-        tile.style = `background-color:${tileEvaluation[0]};border-color:${tileEvaluation[0]}`
-        key.style = `background-color:${tileEvaluation[0]};border:${tileEvaluation[0]}`
-        updateEvaluationsStorage()
-        updateKeyEvaluationsStorage()
-      }, interval * i)
-    })
 
-    if(currentWord === todaysWord){
-      setTimeout(window.alert("Congratulations!"), 2300)
-      gameState = "OVER"
-      updateStoredGameState()
-      gameStateCheck()
-    }
-    if(guessedWords.length===6){
-      window.alert(`Game Over, the word is ${todaysWord}`)
-      gameState = "OVER"
-      updateStoredGameState()
-      gameStateCheck()
-    }
+    checkWord(currentWord, currentWords, firstLetter)
 
-    guessedWords.push([])
-    wordsCounter++
-    updateGuessedWordsStorage()
-    updateWordsCounterStorage()
-    updateStoredSpaceStorage()
   }) .catch(() => {
     window.alert("Inputted word is not valid!")
   })
-}
-
-
-/* async function validWord(inputWord){
-  const payload = inputWord
-  console.log(payload)
-  const response = await fetch ('validword', {
-    method: 'POST',
-    headers: {'Content-Type': 'text/plain'},
-    body: payload
-  })
-
-  if(response.ok){
-    console.log("worked", response)
-  } else{
-    console.log("failed", response)
-  }
-} */
-
-function getTileEvaluation(letter, index){
-  const isCorrect = todaysWord.includes(letter)
-  if(!isCorrect){
-    return ["rgb(58, 58, 60)","absent"]
-  }
-  const isInCorrectPosition = letter === todaysWord.charAt(index)
-  if(isInCorrectPosition){
-    return ["rgb(83, 141, 78)","correct"]
-  }
-
-  return ["rgb(181, 159, 59)","present"]
 }
 
 function getCurrentWords(){
@@ -221,8 +267,6 @@ function updateWords(letter){
   console.log(currentWords)
   if(currentWords && currentWords.length < 5){
     currentWords.push(letter)
-
-    console.log(document.querySelector(`#square${space}`))
     const availableSpace = document.querySelector(`#square${space}`)
     space = space+1
     availableSpace.textContent = letter;
@@ -231,7 +275,6 @@ function updateWords(letter){
 
 function createBoard(){
     const Board = document.querySelector("#board")
-    console.log(document.querySelectorAll('.square'))
     for (let i=0;i<30;i++){
       let square = document.createElement("div")
       square.classList.add("square")
