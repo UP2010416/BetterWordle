@@ -23,7 +23,7 @@ async function checkWord(req, res){
 }
 
 async function checkWordUpdate(req, res){
-    if 
+    res.json(counter)
 }
 
 function asyncWrap(f) {
@@ -33,7 +33,7 @@ function asyncWrap(f) {
     };
 }
 
-app.get('/checkUpdate', express.json(), asyncWrap(checkWordUpdate()));
+app.get('/checkUpdate', asyncWrap(checkWordUpdate));
 app.post('/checkWord', express.json(), asyncWrap(checkWord));
 app.get('/todaysWord', asyncWrap(getTodaysWord));
 app.listen(8080);

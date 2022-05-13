@@ -8,16 +8,21 @@ let wordsCounter = 0;
 let gameState;
 let tileEvaluation;
 let todaysWord;
-let dailyWordCount;
+let dailyWordCount = 1;
+let totalGames = 0;
+let totalWins = 0;
+let currentStreak = 0;
+
 
 function pageLoaded() {
+    checkForWordUpdate()
     createLocalStorage()
     createBoard()
     keyboard()
     addEvaluationToKeys()
     colourKeys()
     gameStateCheck()
-    checkForWordUpdate()
+    updateStats()
 
     // Test to see if words are updating (set time on svr.js to a smaller interval)
 
@@ -44,13 +49,21 @@ window.addEventListener('load', pageLoaded);
 
 async function checkForWordUpdate(){
   const payload = { msg : dailyWordCount }
-  const response = await fetch('checkUpdate', {
-    method: 'POST',
-    headers: {'Content-Type' : 'application/json'},
-    body: JSON.stringify(payload)
-  })
+  console.log('Payload', payload)
+  let output;
+  const response = await fetch('checkUpdate')
   if(response.ok){
-
+    output = await response.json()
+    if(output != dailyWordCount){
+      dailyWordCount = output
+      updateDailyWordCountStorage()
+      clearStorage()
+      window.location.reload
+    }
+    return;
+  } else {
+    let output = {msg : 'failed to get new word data'}
+    console.log(output)
   }
 }
 
@@ -82,10 +95,13 @@ async function checkWord(currentWord, currentWords, firstLetter){
       }, interval * i)
     })
 
-    if(tileEvaluation[0][1] && tileEvaluation[1][1] && tileEvaluation[2][1]
-      && tileEvaluation[3][1] && tileEvaluation[4][1] === "correct"){
+    console.log(tileEvaluation)
+    console.log(tileEvaluation[0][1])
+    if(tileEvaluation[0][1] === "correct" && tileEvaluation[1][1] === "correct" && tileEvaluation[2][1] === "correct"
+      && tileEvaluation[3][1] === "correct" && tileEvaluation[4][1] === "correct"){
       setTimeout(window.alert("Congratulations!"), 2300)
       gameState = "OVER"
+      showResult()
       updateStoredGameState()
       gameStateCheck()
     }
@@ -94,6 +110,9 @@ async function checkWord(currentWord, currentWords, firstLetter){
       getTodaysWord()
       window.alert(`Game Over, the word is ${todaysWord}`)
       gameState = "OVER"
+      const stats = document.querySelector('#stats')
+      stats.style.display = 'block'
+      window.localStorage.setItem('currentStreak',0)
       updateStoredGameState()
       gameStateCheck()
     }
@@ -105,6 +124,7 @@ async function checkWord(currentWord, currentWords, firstLetter){
     updateStoredSpaceStorage()
   } else {
     output = {msg : 'failed to check word'}
+    console.log(output)
   }
 }
 
@@ -119,6 +139,23 @@ async function getTodaysWord(){
   } else {
     obj = [{msg : "failed to load today's word"}]
   }
+}
+
+function showResult(){
+  const stats = document.querySelector('#stats')
+  stats.style.display = 'block'
+  window.localStorage.setItem('totalWins', Number(totalWins) +1)
+  window.localStorage.setItem('currentStreak', Number(currentStreak) + 1)
+  window.localStorage.setItem('totalGames', Number(totalGames) +1)
+}
+
+function updateStats(){
+  document.querySelector("#total-played").textContent = totalGames
+  document.querySelector("#total-wins").textContent = totalWins
+  document.querySelector("#current-streak").textContent = currentStreak;
+
+  const winPercentage = Math.round((totalWins / totalGames) * 100) || 0;
+  document.querySelector("#win-percentage").textContent = winPercentage
 }
 
 function keyboard(){
@@ -168,7 +205,7 @@ function createLocalStorage(){
   }
   const storedKeyEvaluations = window.localStorage.getItem('keyEvaluations')
   if(!storedKeyEvaluations){
-    window.localStorage.setItem('keyEvaluations', JSON.stringify(keyEvaluations),)
+    window.localStorage.setItem('keyEvaluations', JSON.stringify(keyEvaluations))
   } else {
     keyEvaluations = JSON.parse(storedKeyEvaluations)
   }
@@ -184,6 +221,37 @@ function createLocalStorage(){
   } else {
     dailyWordCount = storedDailyWordCount
   }
+  const storedTotalGames = window.localStorage.getItem('totalGames')
+  if(!storedTotalGames){
+    window.localStorage.setItem('totalGames', totalGames)
+  } else {
+    totalGames = storedTotalGames
+  }
+  const storedTotalWins = window.localStorage.getItem('totalWins')
+  if(!storedTotalWins){
+    window.localStorage.setItem('totalWins', totalWins)
+  } else {
+    totalWins = storedTotalWins
+  }
+  const storedCurrentStreak = window.localStorage.getItem('currentStreak')
+  if(!storedCurrentStreak){
+    window.localStorage.setItem('currentStreak', currentStreak)
+  } else {
+    currentStreak = storedCurrentStreak
+  }
+}
+
+function clearStorage(){
+  window.localStorage.removeItem('guessedWords')
+  window.localStorage.removeItem('evaluations')
+  window.localStorage.removeItem('wordsCounter')
+  window.localStorage.removeItem('space')
+  window.localStorage.removeItem('keyEvaluations')
+  window.localStorage.removeItem('gameState')
+}
+
+function updateDailyWordCountStorage(){
+  window.localStorage.setItem('dailyWordCount', JSON.stringify(dailyWordCount))
 }
 
 function updateGuessedWordsStorage(){
@@ -351,4 +419,5 @@ function gameStateCheck(){
     }
   }
 }
+
 

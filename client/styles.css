@@ -62,7 +62,7 @@ header {
 
 #keyboard-container{
     width: 500px;
-    padding-bottom: 50px;
+    padding-bottom: 10px;
 }
 
 .keyboard-row{
@@ -93,4 +93,10 @@ header {
 
 .spacer-half{
     flex-grow: 0.5;
+}
+
+#stats{
+    color: whitesmoke;
+    padding-top: 10px;
+    display:none;
 }

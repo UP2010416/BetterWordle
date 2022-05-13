@@ -7,7 +7,7 @@
   "scripts": {
     "start": "node svr.js"
   },
-  "author": "Michael Kelly",
+  "author": "UP2010416",
   "license": "ISC",
   "dependencies": {
     "express": "^4.17.3",
